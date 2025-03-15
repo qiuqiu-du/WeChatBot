@@ -1,42 +1,6 @@
-# WeClone
+# WeChatBot
 
-使用微信聊天记录微调大语言模型，我使用了大概2万条整合后的有效数据，最后结果只能说差强人意，但有时候真的很搞笑。
-
-> [!IMPORTANT]
->
-> ### 最终效果很大程度取决于聊天数据的数量和质量
-
-### 硬件要求
-
-目前项目默认使用chatglm3-6b模型，LoRA方法对sft阶段微调，大约需要16GB显存。也可以使用[LLaMA Factory](https://github.com/hiyouga/LLaMA-Factory/blob/main/README_zh.md#%E6%A8%A1%E5%9E%8B)支持的其他模型和方法，占用显存更少，需要自行修改模板的system提示词等相关配置。
-
-需要显存的估算值：
-| 训练方法 | 精度 |   7B  |  13B  |  30B  |   65B  |   8x7B |
-| ------- | ---- | ----- | ----- | ----- | ------ | ------ |
-| 全参数   |  16  | 160GB | 320GB | 600GB | 1200GB |  900GB |
-| 部分参数 |  16  |  20GB |  40GB | 120GB |  240GB |  200GB |
-| LoRA    |  16  |  **16GB** |  32GB |  80GB |  160GB |  120GB |
-| QLoRA   |   8  |  10GB |  16GB |  40GB |   80GB |   80GB |
-| QLoRA   |   4  |   6GB |  12GB |  24GB |   48GB |   32GB |
-
-### 软件要求
-
-| 必需项       | 至少     | 推荐      |
-| ------------ | ------- | --------- |
-| python       | 3.8     | 3.10      |
-| torch        | 1.13.1  | 2.2.1     |
-| transformers | 4.37.2  | 4.38.1    |
-| datasets     | 2.14.3  | 2.17.1    |
-| accelerate   | 0.27.2  | 0.27.2    |
-| peft         | 0.9.0   | 0.9.0     |
-| trl          | 0.7.11  | 0.7.11    |
-
-| 可选项       | 至少     | 推荐      |
-| ------------ | ------- | --------- |
-| CUDA         | 11.6    | 12.2      |
-| deepspeed    | 0.10.0  | 0.13.4    |
-| bitsandbytes | 0.39.0  | 0.41.3    |
-| flash-attn   | 2.3.0   | 2.5.5     |
+本项目是基于WeClone开发的聊天机器人，使用自己的聊天记录对模型微调，并使用Gewechat接入微信
 
 ### 环境搭建
 
@@ -117,7 +81,6 @@ python ./src/api_service.py
 ### 启用gewechat
 
 ```bash
-$env:PYTHONPATH = "F:\my_project\WeClone-master"
 python ./src/wechat_bot/demo.py
 ```
 
@@ -140,19 +103,4 @@ python ./src/api_service.py # 先启动api服务
 python ./src/wechat_bot/main.py 
 ```
 
-默认在终端显示二维码，扫码登录即可。可以私聊或者在群聊中@机器人使用。
 
-### 截图
-
-![alt text](img/4.jpg)
-![alt text](img/1.png)
-![alt text](img/2.png)
-![alt text](img/3.png)
-
-### 使用RAG补充知识
-
-Todo
-
-### 多模态
-
-Todo
