@@ -21,7 +21,7 @@ def handler_text(msg , history: [], config):
         response = openai.ChatCompletion.create(
             model=config.model,
             messages=messages,
-            max_tokens=70,
+            max_tokens=config.max_tokens,
             temperature = 0.7, # 让 AI 回答更灵活
             frequency_penalty = 0.4,
             presence_penalty = 0.6  # 让 AI 更倾向于新话题

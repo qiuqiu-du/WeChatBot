@@ -26,17 +26,27 @@ logging.basicConfig(
 )
 log = logging.getLogger('demo')
 
+# 选择model类型，设定max_tokens和上下文长度
 config = {
     'default_prompt': default_prompt,
-    'model': 'gpt-3.5-turbo',
+    # 'model': 'gpt-3.5-turbo',
+    'model': 'deepseek-chat',
     'history_len': 30,
+    'max_tokens':70,
 }
 config = type('Config', (object,), config)()
 
+# 此处填入对应的token， APP_ID和CALL_BACK
 os.environ["BASE_URL"] = "http://127.0.0.1:2531/v2/api"
-os.environ["GEWECHAT_TOKE"] = "982ee53b350441d6af6d564aebdebbf2"
+os.environ["GEWECHAT_TOKE"] = "a2fa13ed7cdd41d38d6a178e1bce55f8"
 os.environ["APP_ID"] = "wx_WD2Sqy6ZoFSXHsiD7fOto"
 os.environ["CALL_BACK"] = "http://192.168.20.41:9919/v2/api/callback/collect"
+
+# 配置LLM的key和base
+# openai.api_key = '''sk-test'''
+# openai.api_base = "http://127.0.0.1:8000/v1"
+openai.api_key = "sk-0f2e92330a4f419fb568ebbd1aba28a3"  # 替换为你的 API Key
+openai.api_base = "https://api.deepseek.com"
 
 
 
@@ -121,9 +131,6 @@ class WeChatGPT:
         token = os.environ.get("GEWECHAT_TOKE", " ")
         app_id = os.environ.get("APP_ID", "wx_WD2Sqy6ZoFSXHsiD7fOto")
         callback_url = os.environ.get("CALL_BACK", "http://192.168.20.41:9919/v2/api/callback/collect")
-
-        openai.api_key = '''sk-test'''
-        openai.api_base = "http://127.0.0.1:8000/v1"
 
         # 创建 GewechatClient 实例
         client = GewechatClient(base_url, token)
@@ -225,7 +232,7 @@ class Query:
 
 
 
-def test():
+def logout():
     # 配置参数
     base_url = os.environ.get("BASE_URL", "http://127.0.0.1:2531/v2/api")
     token = os.environ.get("GEWECHAT_TOKE", " ")
@@ -239,6 +246,6 @@ def test():
     print(r)
 
 if __name__ == "__main__":
-    # test()
+    # logout()
     wechatgpt = WeChatGPT()
 
