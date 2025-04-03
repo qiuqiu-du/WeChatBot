@@ -1,106 +1,149 @@
-# WeChatBot
+# WeChatBot - 基于个人聊天记录的智能微信机器人
 
-本项目是基于WeClone开发的聊天机器人，使用自己的聊天记录对模型微调，并使用Gewechat接入微信
+![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Model](https://img.shields.io/badge/model-ChatGLM3-ff69b4)
 
-### 环境搭建
+本项目以[WeClone](https://github.com/xming521/WeClone)为基础，是一个基于ChatGLM3模型的智能微信机器人，能够使用您的个人微信聊天记录进行微调，并通过Gewechat接入微信实现自动回复功能。支持本地模型和第三方API两种接入方式。
+
+## ✨ 核心功能
+
+- **个性化回复**：使用您的真实微信聊天记录微调模型
+- **双模式支持**：本地模型和第三方API自由切换
+- **隐私保护**：自动过滤敏感信息（手机号、身份证等）
+- **多场景适配**：支持私聊、群聊等多种聊天场景
+- **灵活部署**：提供单卡/多卡训练方案
+
+## 🚀 快速开始
+
+### 环境配置
 
 ```bash
-git clone https://github.com/xming521/WeClone.git
-conda create -n weclone python=3.10
-conda activate weclone
-cd WeClone
+git clone https://github.com/qiuqiu-du/WeChatBot.git
+conda create -n wechatbot python=3.10
+conda activate wechatbot
+cd WeChatBot
 pip install -r requirements.txt
 ```
 
-训练以及推理相关配置统一在文件[settings.json](settings.json)
-
 ### 数据准备
 
-请使用[PyWxDump](https://github.com/xaoyaoo/PyWxDump)提取微信聊天记录。下载软件并解密数据库后，点击聊天备份，导出类型为CSV，可以导出多个联系人或群聊，然后将导出的位于`wxdump_tmp/export` 的 `csv` 文件夹放在`./data`目录即可，也就是不同人聊天记录的文件夹一起放在 `./data/csv`。 示例数据位于[data/example_chat.csv](data/example_chat.csv)。
+1. 使用[PyWxDump](https://github.com/xaoyaoo/PyWxDump)导出微信聊天记录
+2. 将导出的CSV文件放入`./data/csv`目录，参考格式如下：
 
-### 数据预处理
+```plaintext
+data/
+└── csv/
+    ├── wxid_1/               # 微信ID1的聊天记录
+    │   ├── 聊天记录1.csv      # 与某个联系人或群的聊天记录
+    │   ├── 聊天记录2.csv
+    │   └── ...
+    ├── wxid_2/               # 微信ID2的聊天记录
+    │   ├── 群聊A.csv
+    │   ├── 私聊B.csv
+    │   └── ...
+    └── ...                   # 其他微信账号数据
+```
 
-项目默认去除了数据中的手机号、身份证号、邮箱、网址。还提供了一个禁用词词库[blocked_words](make_dataset/blocked_words.json)，可以自行添加需要过滤的词句（会默认去掉包括禁用词的整句）。
-执行 `./make_dataset/csv_to_json.py` 脚本对数据进行处理。
 
-在同一人连续回答多句的情况下，有三种处理方式：
-| 文件 | 处理方式 |
-| --- | --- |
-| csv_to_json.py | 用逗号连接 |
-| csv_to_json-单句回答.py(已废弃) | 只选择最长的回答作为最终数据 |
-| csv_to_json-单句多轮.py | 放在了提示词的'history'中 |
+3. 运行预处理脚本：
 
+```bash
+python make_dataset/csv_to_json.py
+```
+
+> 💡 示例数据见：[data/example_chat.csv](data/example_chat.csv)
+
+## 🛠 模型训练
 
 ### 模型下载
 
-首选在Hugging Face下载[ChatGLM3](https://huggingface.co/THUDM/chatglm3-6b) 模型。如果您在 Hugging Face 模型的下载中遇到了问题，可以通过下述方法使用魔搭社区，后续训练推理都需要先执行`export USE_MODELSCOPE_HUB=1`来使用魔搭社区的模型。  
-由于模型较大，下载过程比较漫长请耐心等待。
-
 ```bash
-set USE_MODELSCOPE_HUB=1 # Windows 使用 `set USE_MODELSCOPE_HUB=1`
+# 通过Hugging Face下载
 git lfs install
+git clone https://huggingface.co/THUDM/chatglm3-6b
+
+# 或使用魔搭社区（国内推荐）
+export USE_MODELSCOPE_HUB=1
 git clone https://www.modelscope.cn/ZhipuAI/chatglm3-6b.git
 ```
 
-### 配置参数并微调模型
+### 训练配置
 
-- (可选)修改 [settings.json](settings.json)选择本地下载好的其他模型。  
+根据电脑性能和具体需求修改[settings.json](settings.json)配置：
 
-- 修改`per_device_train_batch_size`以及`gradient_accumulation_steps`来调整显存占用。  
-- 可以根据自己数据集的数量和质量修改`num_train_epochs`、`lora_rank`、`lora_dropout`等参数。
+```json
+{
+  "model_name": "chatglm3-6b",
+  "per_device_train_batch_size": 4,
+  "gradient_accumulation_steps": 8,
+  "num_train_epochs": 3,
+  "lora_rank": 8,
+  "lora_dropout": 0.1
+}
+```
 
-#### 单卡训练
-
-运行 `src/train_sft.py` 进行sft阶段微调，本人loss只降到了3.5左右，降低过多可能会过拟合。
+### 开始训练
 
 ```bash
+# 单卡训练
 python src/train_sft.py
+
+# 多卡训练（需安装deepspeed）
+deepspeed --num_gpus=2 src/train_sft.py
 ```
 
-#### 多卡训练
+> ❕ 也可以先对pt阶段进行微调，仓库也提供了pt阶段数据集预处理和训练的代码。
+
+## 🤖 微信机器人部署
+
+> ⚠️ 重要提示：机器人有封号风险，建议使用微信小号。绑定银行卡后后才能使用
+
+### 本地模型模式
 
 ```bash
-pip install deepspeed
-deepspeed --num_gpus=使用显卡数量 src/train_sft.py
+# 启动API服务
+python src/api_service.py
+
+# 启动微信机器人
+python src/wechat_bot/demo.py
 ```
 
-> [!NOTE]
-> 也可以先对pt阶段进行微调，似乎提升效果不明显，仓库也提供了pt阶段数据集预处理和训练的代码。
-
-### 使用浏览器demo简单推理
+### 第三方API模式
 
 ```bash
-python ./src/web_demo.py 
+# 修改config.py中的API配置后直接运行
+python src/wechat_bot/demo.py
 ```
 
-### 使用接口进行推理
+## 🌐 其他功能
+
+### Web演示界面
 
 ```bash
-python ./src/api_service.py
+python src/web_demo.py
 ```
-### 启用gewechat
+
+### API测试
 
 ```bash
-python ./src/wechat_bot/demo.py
+# 启动API服务
+python src/api_service.py
+
+# 运行测试脚本
+python src/test_model.py
 ```
 
+## 📚 进阶指南
 
-### 使用常见聊天问题测试
+- **数据处理**：支持三种对话处理模式（见`make_dataset/`目录）
+- **模型微调**：提供PT和SFT两阶段训练代码
+- **安全过滤**：可自定义敏感词库（`make_dataset/blocked_words.json`）
 
-```bash
-python ./src/api_service.py
-python ./src/test_model.py
-```
+## 📜 声明
 
-### 部署微信聊天机器人
+使用微信机器人功能请注意遵守微信用户协议,本项目仅用于学习科研用途。
 
-> [!IMPORTANT]
->
-> 微信有封号风险，建议使用小号，并且必须绑定银行卡才能使用
+## 💬 问题反馈
 
-```bash
-python ./src/api_service.py # 先启动api服务
-python ./src/wechat_bot/main.py 
-```
-
-
+如有任何问题，请提交Issue或联系作者邮箱：[qiuqiudu@protonmail.com](mailto:qiuqiudu@protonmail.com)
