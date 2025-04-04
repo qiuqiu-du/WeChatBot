@@ -1,20 +1,15 @@
-from logging import Handler
-
-from gewechat_client import GewechatClient
 import os
 import time
-import openai
 import logging
 import web
 import threading
 import json
-import xml.etree.ElementTree as ET
 
-# from gradio.routes import client
 
-from src.template import default_prompt
-from handler.text import handler_text
+from handler.MessageHandler import MessageHandler
 from urllib.parse import urlparse
+from gewechat_client import GewechatClient
+from src.config.settings import WeChatConfig
 
 # 配置日志输出
 logging.basicConfig(
@@ -26,111 +21,16 @@ logging.basicConfig(
 )
 log = logging.getLogger('demo')
 
-# 选择model类型，设定max_tokens和上下文长度
-config = {
-    'default_prompt': default_prompt,
-    # 'model': 'gpt-3.5-turbo',
-    'model': 'deepseek-chat',
-    'history_len': 30,
-    'max_tokens':70,
-}
-config = type('Config', (object,), config)()
-
-# 此处填入对应的token， APP_ID和CALL_BACK
-os.environ["BASE_URL"] = "http://127.0.0.1:2531/v2/api"
-os.environ["GEWECHAT_TOKE"] = "a2fa13ed7cdd41d38d6a178e1bce55f8"
-os.environ["APP_ID"] = "wx_WD2Sqy6ZoFSXHsiD7fOto"
-os.environ["CALL_BACK"] = "http://192.168.20.41:9919/v2/api/callback/collect"
-
-# 配置LLM的key和base
-# openai.api_key = '''sk-test'''
-# openai.api_base = "http://127.0.0.1:8000/v1"
-openai.api_key = "sk-0f2e92330a4f419fb568ebbd1aba28a3"  # 替换为你的 API Key
-openai.api_base = "https://api.deepseek.com"
-
-
-
-class MessageHandler:
-    """执行消息处理"""
-    def __init__(self):
-        self.base_url = os.environ.get("BASE_URL", "http://127.0.0.1:2531/v2/api")
-        self.token = os.environ.get("GEWECHAT_TOKE", " ")
-        self.app_id = os.environ.get("APP_ID", "wx_WD2Sqy6ZoFSXHsiD7fOto")
-        # callback_url = os.environ.get("CALL_BACK", "http://192.168.20.41:9919/v2/api/callback/collect")
-
-        self.history = {}
-        self.prompts = {}
-
-
-    def handler_history(self, msg):
-        # 管理历史对话长度
-        self.history.setdefault(msg.user, [])
-        history = self.history[msg.user]
-        need_remove_len = len(history) - config.history_len
-        if need_remove_len > 0:
-            for i in range(need_remove_len):
-                # 必须出一对
-                history.pop(0)
-                history.pop(0)
-        return history
-
-    def reply(self, to_wxid, msg):
-        # 创建 GewechatClient 实例
-        client = GewechatClient(self.base_url, self.token)
-
-        if msg.text == "clear":
-            self.history[msg.user] = []
-            client.post_text(self.app_id, to_wxid, "记忆已清除")
-            print("\033[31m记忆已清除\033[0m")
-            return
-
-        if time.time() - msg.CreateTime > 5:
-            return None
-        res = handler_text(msg, history=self.handler_history(msg), config=config)
-        print(f"[Reply] {res}")
-        res = res.split('，')
-        res[-1] = res[-1].replace('。', '')
-        if res[0] == '':
-            res[0] = '机器人他无语了'
-        for r in res:
-            client.post_text(self.app_id, to_wxid, r)
-            time.sleep(2.2)
-
-    def add_friends(self, data_section):
-        client = GewechatClient(self.base_url, self.token)
-
-        # 解析 XML
-        root = ET.fromstring(data_section.get("Content", {}).get("string", ""))
-        # print(root)
-        # print(data_section.get("Content", {}).get("string", ""))
-
-        # 提取字段
-        from_user_name = root.get("fromusername")
-        v3 = root.get("encryptusername")
-        v4 = root.get("ticket")
-        scene = root.get("scene")
-
-        # print(self.app_id)
-        # print(f"encryptusername: {v3}")
-        # print(f"ticket: {v4}")
-        # print(f"scene: {scene}")
-
-        # 同意请求
-        client.add_contacts(self.app_id, scene, 3, v3, v4, "你好")
-
-
 messagehandler = MessageHandler()
-
-
-
 
 class WeChatGPT:
     """启动机器人并执行登陆程序"""
-    def __init__(self):
-        base_url = os.environ.get("BASE_URL", "http://127.0.0.1:2531/v2/api")
-        token = os.environ.get("GEWECHAT_TOKE", " ")
-        app_id = os.environ.get("APP_ID", "wx_WD2Sqy6ZoFSXHsiD7fOto")
-        callback_url = os.environ.get("CALL_BACK", "http://192.168.20.41:9919/v2/api/callback/collect")
+    def __init__(self, config:WeChatConfig=WeChatConfig):
+        self.config = config
+        app_id= self.config.app_id
+        base_url=self.config.base_url
+        token=self.config.token
+        callback_url=self.config.callback_url
 
         # 创建 GewechatClient 实例
         client = GewechatClient(base_url, token)
@@ -182,11 +82,22 @@ class WeChatGPT:
 
 
 class Query:
+    def __init__(self, config:WeChatConfig=WeChatConfig):
+        self.config = config
+        self.app_id= self.config.app_id
+        self.base_url=self.config.base_url
+        self.token=self.config.token
+
+        # 创建 GewechatClient 实例
+        self.client = GewechatClient(self.base_url, self.token)
+
     def POST(self):
         """处理 POST 请求，筛选并打印符合条件的消息内容"""
         try:
             data = web.data()  # 获取请求体数据
             parsed_data = json.loads(data)  # 解析 JSON 数据
+
+            # print('收到消息：\n',json.dumps(parsed_data, indent=4, ensure_ascii=False))
 
             # 提取关键字段
             wxid = parsed_data.get("Wxid", "")
@@ -196,21 +107,44 @@ class Query:
             to_user = data_section.get("ToUserName", {}).get("string", "")
             msg_type = data_section.get("MsgType", 0)
             text = data_section.get("Content", {}).get("string", "")
-            CreateTime = data_section.get("CreateTime", "")
+            create_time = data_section.get("CreateTime", "")
+            msg_id = data_section.get("NewMsgId", "")
 
             # 封装 msg 对象
             msg = {
                 "text": text,
-                "CreateTime": CreateTime,
-                "user": from_user
+                "CreateTime": create_time,
+                "user": from_user,
+                "wxid_in_chatroom" : None,
+                "nick_name" : None
             }
             msg = type('Config', (object,), msg)()
 
             # print(f"wxid:{wxid}, from_user:{from_user}, to_user{to_user}, msg_type:{msg_type}, content:{msg}")
-            # 接收到为文本消息自动回复
-            if to_user == wxid and msg_type == 1:
-                print(f"[Message] {msg.text}")
-                messagehandler.reply(to_wxid = from_user, msg=msg)
+            # 接收到联系人的文本消息自动回复
+            if to_user == wxid and msg_type == 1 and '@chatroom' not in msg.user:
+                print(f"[Message] ({msg.user}) {msg.text}")
+                messagehandler.reply(msg)
+
+            # 接收到群聊的文本消息自动回复
+            elif to_user == wxid and msg_type == 1 and '@chatroom' in msg.user:
+                my_nickname = self.client.get_profile(self.app_id).get("data",{}).get("nickName","")
+                if f'@{my_nickname}' in msg.text:
+                    # 分割消息，保存wxid和实际内容
+                    msg.wxid_in_chatroom, msg.text = msg.text.split(':\n', 1)
+                    # 去除@字段
+                    msg.text = msg.text.replace(f'@{my_nickname}', "").strip()
+                    member_detail = self.client.get_chatroom_member_detail(app_id = self.app_id,chatroom_id = msg.user,member_wxids = [msg.wxid_in_chatroom])
+                    # member_detail2 = self.client.get_brief_info(app_id = self.app_id, wxids=[msg.wxid_in_chatroom])
+                    msg.nick_name = member_detail.get("data", [])[0].get("nickName","")
+                    # nick_name2 = member_detail2.get("data", [])[0].get("nickName","")
+
+                    # msg.user 为群聊名称：52180927825@chatroom
+                    # msg.id_in_chatroom 为发言人名称：wxid_4mw40s2inlib22
+                    print(f"[Message] ({msg.user}: {msg.wxid_in_chatroom}) {msg.text}")
+                    messagehandler.reply(msg)
+
+
 
             # 接受到好友请求
             if msg_type == 37:
