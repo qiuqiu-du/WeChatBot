@@ -1,9 +1,12 @@
+import time
+import logging
+
 from src.config.settings import WeChatConfig
 from gewechat_client import GewechatClient
 from .text import handler_text
-import time
+import xml.etree.ElementTree as ET
 
-
+log = logging.getLogger('MessageHandler')
 
 
 class MessageHandler:
@@ -58,6 +61,7 @@ class MessageHandler:
                 if self.config.reply_with_at:
                     res[0] = f'@{msg.nick_name} {res[0]}'
                     self.client.post_text(self.app_id, to_wxid = msg.user, content = res[0], ats = msg.wxid_in_chatroom)
+                    time.sleep(2.2)
                     for r in res[1:]:
                         self.client.post_text(self.app_id, msg.user, r)
                         time.sleep(2.2)
