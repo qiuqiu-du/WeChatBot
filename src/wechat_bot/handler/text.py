@@ -2,8 +2,12 @@ import logging
 import openai
 from src.utils.saver import save_chat_history
 import time
+from src.config.settings import WeChatConfig
+
 
 log = logging.getLogger('text')
+openai.api_key = WeChatConfig.api_key  # 替换为你的 API Key
+openai.api_base = WeChatConfig.api_base
 
 def handler_text(msg , history: [], config):
     """处理文本消息并调用 OpenAI"""
