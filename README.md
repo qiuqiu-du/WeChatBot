@@ -4,7 +4,7 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Model](https://img.shields.io/badge/model-ChatGLM3-ff69b4)
 
-本项目以[WeClone](https://github.com/xming521/WeClone)为基础，是一个基于ChatGLM3模型的智能微信机器人，能够使用您的个人微信聊天记录进行微调，并通过Gewechat接入微信实现自动回复功能。支持本地模型和第三方API两种接入方式。
+本项目以[WeClone](https://github.com/xming521/WeClone)为基础，是一个基于ChatGLM3模型的智能微信机器人，能够使用您的个人微信聊天记录进行微调，并通过[Gewechat](https://github.com/Devo919/Gewechat)接入微信实现自动回复功能。支持本地模型和第三方API两种接入方式。
 
 ## ✨ 核心功能
 
@@ -15,6 +15,10 @@
 - **灵活部署**：提供单卡/多卡训练方案
 
 ## 🚀 快速开始
+
+### 前期准备
+- 按照官方教程部署好[Gewechat](https://github.com/Devo919/Gewechat)框架  
+- 点击此处查看详细Gewechat[API文档](https://apifox.com/apidoc/shared/69ba62ca-cb7d-437e-85e4-6f3d3df271b1)
 
 ### 环境配置
 
