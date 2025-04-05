@@ -166,11 +166,11 @@ class Query:
 
 
 
-def logout():
-    # 配置参数
-    base_url = os.environ.get("BASE_URL", "http://127.0.0.1:2531/v2/api")
-    token = os.environ.get("GEWECHAT_TOKE", " ")
-    app_id = os.environ.get("APP_ID", "wx_WD2Sqy6ZoFSXHsiD7fOto")
+def logout(config:WeChatConfig=WeChatConfig):
+
+    app_id = config.app_id
+    base_url = config.base_url
+    token = config.token
 
     # 创建 GewechatClient 实例
     client = GewechatClient(base_url, token)
