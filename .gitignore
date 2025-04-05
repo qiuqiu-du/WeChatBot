@@ -148,7 +148,6 @@ data/test
 .vscode
 *-my.*
 *.csv
-test.py
 *users.json
 docker-compose.yml
 chat_logs
