@@ -6,8 +6,9 @@ from src.config.settings import WeChatConfig
 
 
 log = logging.getLogger('text')
-openai.api_key = WeChatConfig.api_key  # 替换为你的 API Key
-openai.api_base = WeChatConfig.api_base
+config = WeChatConfig.from_json()
+openai.api_key = config.api_key
+openai.api_base = config.api_base
 
 def handler_text(msg , history: [], config):
     """处理文本消息并调用 OpenAI"""
@@ -31,7 +32,7 @@ def handler_text(msg , history: [], config):
             presence_penalty = 0.6  # 让 AI 更倾向于新话题
         )
     except openai.APIError as e:
-        log.error(e)
+        log.error(f"[openai] Error:{e}")
         history.pop()
         return 'AI接口出错,请重试\n' + str(e)
 

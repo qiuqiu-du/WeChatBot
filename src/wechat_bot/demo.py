@@ -82,7 +82,7 @@ class WeChatGPT:
 
 
 class Query:
-    def __init__(self, config:WeChatConfig=WeChatConfig):
+    def __init__(self, config:WeChatConfig=WeChatConfig.from_json()):
         self.config = config
         self.app_id= self.config.app_id
         self.base_url=self.config.base_url
@@ -166,7 +166,7 @@ class Query:
 
 
 
-def logout(config:WeChatConfig=WeChatConfig):
+def logout(config:WeChatConfig=WeChatConfig.from_json()):
 
     app_id = config.app_id
     base_url = config.base_url
@@ -174,6 +174,7 @@ def logout(config:WeChatConfig=WeChatConfig):
 
     client = GewechatClient(base_url, token)
 
+    # client.logout(app_id)
     online_state = client.check_online(app_id).get("data", False)
     if not online_state:
         client.logout(app_id)
