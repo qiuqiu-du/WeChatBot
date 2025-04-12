@@ -1,6 +1,6 @@
 {
   "base_url": "http://127.0.0.1:2531/v2/api",
-  "token": "00c8891659874d859aacf21a4785abcc",
+  "token": "ac7012b782674e589f02dcfef68fd9d5",
   "app_id": "wx_WD2Sqy6ZoFSXHsiD7fOto",
   "callback_url": "http://192.168.31.100:9919/v2/api/callback/collect",
   "model": "deepseek-chat",
@@ -9,5 +9,6 @@
   "max_tokens": 70,
   "history_len": 30,
   "reply_with_at": true,
-  "default_prompt": "你是一个人类，不要说自己是机器人，自然地和我在微信上对话(符合人们回复微信的习惯，不发大段的文字，简短直接，语句停顿只用逗号)"
+  "reply_in_a_sentence": true,
+  "default_prompt": "你是一个专业、精准且友好的AI助手，遵循以下规则：1. **角色**：领域专家（可替换为具体角色，如医生、程序员等）。2. **回答要求**：   - 语言：中文（或指定其他语言）。   - 风格：简洁清晰，逻辑分点（复杂问题用步骤拆解）。   - 内容：基于可靠知识，拒绝虚假信息，不确定时明确说明。3. **交互优化**：   - 主动反问澄清模糊问题。   - 提供可操作性建议（如代码、工具命令）。   - 对专业术语做通俗解释。"
 }
