@@ -18,7 +18,6 @@
 
 ### 前期准备
 - 按照官方教程部署好[Gewechat](https://github.com/Devo919/Gewechat)框架  
-- 点击此处查看详细Gewechat[API文档](https://apifox.com/apidoc/shared/69ba62ca-cb7d-437e-85e4-6f3d3df271b1)
 
 ### 环境配置
 
@@ -143,6 +142,7 @@ python src/test_model.py
 - **数据处理**：支持三种对话处理模式（见`make_dataset/`目录）
 - **模型微调**：提供PT和SFT两阶段训练代码
 - **安全过滤**：可自定义敏感词库（`make_dataset/blocked_words.json`）
+- **定制开发**：点击此处查看详细Gewechat[API文档](https://apifox.com/apidoc/shared/69ba62ca-cb7d-437e-85e4-6f3d3df271b1)实现更多功能
 
 ## 📜 声明
 
