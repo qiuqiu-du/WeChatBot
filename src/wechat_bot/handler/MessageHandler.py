@@ -11,7 +11,7 @@ log = logging.getLogger('MessageHandler')
 
 class MessageHandler:
     """执行消息处理"""
-    def __init__(self, config:WeChatConfig=WeChatConfig):
+    def __init__(self, config:WeChatConfig=WeChatConfig.from_json()):
         self.config = config
         self.app_id= self.config.app_id
         self.base_url=self.config.base_url
@@ -50,13 +50,18 @@ class MessageHandler:
             res = handler_text(msg, history=self.handler_history(msg), config=self.config)
 
             # 将回复整理为一行
-            res = res.replace('\n', '。')
             print(f"[Reply] ({msg.user}) {res}" if msg.wxid_in_chatroom is None else f"[Reply] ({msg.user}: {msg.wxid_in_chatroom}) {res}")
-            res = res.replace('。', '，')
-            # 去掉空白内容
-            res = [item for item in res.split('，') if item.strip() != '']
+            if not self.config.reply_in_a_sentence:
+                res = res.replace('\n', '。')
+                res = res.replace('。', '，')
+                # 去掉空白内容
+                res = [item for item in res.split('，') if item.strip() != '']
+            else:
+                res = [res]
+
             if res[0] == '':
                 res[0] = '机器人他无语了'
+                return
 
             if msg.wxid_in_chatroom is not None:
                 if self.config.reply_with_at:
