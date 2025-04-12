@@ -1,0 +1,13 @@
+{
+  "base_url": "http://127.0.0.1:2531/v2/api",
+  "token": "00c8891659874d859aacf21a4785abcc",
+  "app_id": "wx_WD2Sqy6ZoFSXHsiD7fOto",
+  "callback_url": "http://192.168.31.100:9919/v2/api/callback/collect",
+  "model": "deepseek-chat",
+  "api_key": "sk-7c60055a0c96485f8314bdd290e8ebd9",
+  "api_base": "https://api.deepseek.com",
+  "max_tokens": 70,
+  "history_len": 30,
+  "reply_with_at": true,
+  "default_prompt": "你是一个人类，不要说自己是机器人，自然地和我在微信上对话(符合人们回复微信的习惯，不发大段的文字，简短直接，语句停顿只用逗号)"
+}
