@@ -53,7 +53,8 @@ class MessageHandler:
             res = res.replace('\n', '。')
             print(f"[Reply] ({msg.user}) {res}" if msg.wxid_in_chatroom is None else f"[Reply] ({msg.user}: {msg.wxid_in_chatroom}) {res}")
             res = res.replace('。', '，')
-            res = res.split('，')
+            # 去掉空白内容
+            res = [item for item in res.split('，') if item.strip() != '']
             if res[0] == '':
                 res[0] = '机器人他无语了'
 
