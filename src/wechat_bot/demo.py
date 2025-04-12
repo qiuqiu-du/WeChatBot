@@ -6,7 +6,7 @@ import threading
 import json
 
 
-from handler.MessageHandler import MessageHandler
+from src.wechat_bot.handler.MessageHandler import MessageHandler
 from urllib.parse import urlparse
 from gewechat_client import GewechatClient
 from src.config.settings import WeChatConfig
@@ -25,7 +25,7 @@ messagehandler = MessageHandler()
 
 class WeChatGPT:
     """启动机器人并执行登陆程序"""
-    def __init__(self, config:WeChatConfig=WeChatConfig):
+    def __init__(self, config:WeChatConfig=WeChatConfig.from_json()):
         self.config = config
         app_id= self.config.app_id
         base_url=self.config.base_url
@@ -73,7 +73,7 @@ class WeChatGPT:
         log.info(f"[gewechat] Start callback server: {callback_url}, using port {port}")
 
         # **注册 URL**
-        urls = (path, "src.wechat_bot.demo.Query")  # 确保 `CallbackHandler` 存在
+        urls = (path, f"{__name__}.Query")  # 确保 `CallbackHandler` 存在
         app = web.application(urls, globals(), autoreload=False)
         print("\033[33m服务已启动\033[0m")
         # **启动 Web 服务器**
@@ -172,14 +172,14 @@ def logout(config:WeChatConfig=WeChatConfig):
     base_url = config.base_url
     token = config.token
 
-    # 创建 GewechatClient 实例
     client = GewechatClient(base_url, token)
 
-    # 登出微信
-    r = client.logout(app_id)
-    print(r)
+    online_state = client.check_online(app_id).get("data", False)
+    if not online_state:
+        client.logout(app_id)
+        print('已退出登录')
 
 if __name__ == "__main__":
-    # logout()
+    logout()
     wechatgpt = WeChatGPT()
 
