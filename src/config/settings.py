@@ -1,6 +1,7 @@
 import os
 from dataclasses import dataclass
 import json
+import sys
 
 @dataclass
 class WeChatConfig:
@@ -17,15 +18,24 @@ class WeChatConfig:
     max_tokens: int = 70
     history_len: int = 30
     reply_with_at: bool = True
+    reply_in_a_sentence: bool = True
 
     default_prompt: str = "你是一个人类，不要说自己是机器人，自然地和我在微信上对话(符合人们回复微信的习惯，不发大段的文字，简短直接，语句停顿只用逗号)"
 
 
     @classmethod
     def from_json(cls, path: str = "config.json"):
-        # 源码运行，从当前文件目录寻找 config.json
-        path = os.path.join(os.path.dirname(__file__), path)
+        # 获取可执行文件所在目录
+        if getattr(sys, 'frozen', False):
+            # 打包后的情况（如PyInstaller）
+            exe_dir = os.path.dirname(sys.executable)
+        else:
+            # 源码运行的情况
+            exe_dir = os.path.dirname(__file__)
 
-        with open(path, "r", encoding="utf-8") as f:
+        # 构建完整路径
+        full_path = os.path.join(exe_dir, path)
+
+        with open(full_path, "r", encoding="utf-8") as f:
             data = json.load(f)
         return cls(**data)
